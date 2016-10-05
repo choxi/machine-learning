@@ -42,7 +42,6 @@ class LearningAgent(Agent):
         if random.random() < self.epsilon:
             next_action = best_action
         else:
-            print "random choice"
             other_actions = filter(lambda x: x != best_action, possible_actions)
             next_action = random.choice(other_actions)
 
