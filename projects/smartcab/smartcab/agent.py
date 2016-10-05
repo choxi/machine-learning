@@ -14,10 +14,24 @@ class LearningAgent(Agent):
         self.planner    = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
         self.q_values   = {}
         self.epsilon    = 0.5
+        self.alpha      = 0.1
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
         # TODO: Prepare for a new trip; reset any variables here, if required
+
+    def best_action_from_state(self, state):
+        possible_actions    = [ None, "forward", "left", "right" ]
+        best_action         = None
+        best_q_value        = self.q_values.get((state, best_action), 0)
+
+        for action in possible_actions:
+            q_value = self.q_values.get((state, action), 0)
+            if q_value > best_q_value:
+                best_action  = action
+                best_q_value = q_value
+
+        return best_action
 
     def update(self, t):
         possible_actions = [None, "forward", "left", "right"]
@@ -29,15 +43,9 @@ class LearningAgent(Agent):
 
         self.state = (inputs["light"], inputs["oncoming"], deadline)
 
+        #######################################################################
         # Select action according to your policy
-        best_action  = None
-        best_q_value = self.q_values.get((self.state, best_action), 0)
-
-        for action in possible_actions:
-            q_value = self.q_values.get((self.state, action), 0)
-            if q_value > best_q_value:
-                best_action  = action
-                best_q_value = q_value
+        best_action = self.best_action_from_state(self.state)
 
         if random.random() < self.epsilon:
             next_action = best_action
