@@ -10,11 +10,13 @@ class LearningAgent(Agent):
 
     def __init__(self, env):
         super(LearningAgent, self).__init__(env)  # sets self.env = env, state = None, next_waypoint = None, and a default color
-        self.color      = 'red'  # override color
-        self.planner    = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
-        self.q_values   = {}
-        self.epsilon    = 0.5
-        self.alpha      = 0.1
+        self.color          = 'red'  # override color
+        self.planner        = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
+        self.q_values       = {}
+        self.epsilon        = 0.5
+        self.alpha          = 0.5
+        self.gamma          = 0.5
+        self.rewards        = []
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
@@ -56,6 +58,7 @@ class LearningAgent(Agent):
         #######################################################################
         # Execute action and get reward
         reward = self.env.act(self, next_action)
+        self.rewards.append(reward)
 
         #######################################################################
         # Learn policy based on state, action, reward
@@ -72,11 +75,13 @@ class LearningAgent(Agent):
         best_action = self.best_action_from_state(next_state)
         self.q_values[(next_state, next_action)] = \
             self.q_values.get((next_state, next_action), 0) + \
-            self.alpha * (reward + self.q_values.get((next_state, best_action), 0))
+            self.alpha * (reward + (self.gamma ** t) * self.q_values.get((next_state, best_action), 0))
 
-        print "LearningAgent.update(): state = {}".format(self.state)
-        print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, next_action, reward)  # [debug]
-
+        print "="*80
+        print "LearningAgent.update():"
+        print "     state = {}".format(self.state)
+        print "     deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, next_action, reward)  # [debug]
+        print "     total reward = {}".format(sum(self.rewards))
 def run():
     """Run the agent for a finite number of trials."""
 
@@ -87,7 +92,7 @@ def run():
     # NOTE: You can set enforce_deadline=False while debugging to allow longer trials
 
     # Now simulate it
-    sim = Simulator(e, update_delay=0.5, display=True)  # create simulator (uses pygame when display=True, if available)
+    sim = Simulator(e, update_delay=0, display=True)  # create simulator (uses pygame when display=True, if available)
     # NOTE: To speed up simulation, reduce update_delay and/or set display=False
 
     sim.run(n_trials=100)  # run for a specified number of trials
