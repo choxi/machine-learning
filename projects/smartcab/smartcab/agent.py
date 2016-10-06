@@ -22,7 +22,7 @@ class LearningAgent(Agent):
         self.planner.route_to(destination)
         # TODO: Prepare for a new trip; reset any variables here, if required
 
-    def best_action_from_state(self, state):
+    def best_action_from_state(self, state, epsilon=1.0):
         possible_actions    = [ None, "forward", "left", "right" ]
         best_action         = None
         best_q_value        = self.q_values.get((state, best_action), 0)
@@ -33,7 +33,13 @@ class LearningAgent(Agent):
                 best_action  = action
                 best_q_value = q_value
 
-        return best_action
+        if random.random() < self.epsilon:
+            next_action = best_action
+        else:
+            other_actions = filter(lambda x: x != best_action, possible_actions)
+            next_action = random.choice(other_actions)
+
+        return next_action
 
     def update(self, t):
         possible_actions = [None, "forward", "left", "right"]
@@ -47,13 +53,7 @@ class LearningAgent(Agent):
 
         #######################################################################
         # Select action according to your policy
-        best_action = self.best_action_from_state(self.state)
-
-        if random.random() < self.epsilon:
-            next_action = best_action
-        else:
-            other_actions = filter(lambda x: x != best_action, possible_actions)
-            next_action = random.choice(other_actions)
+        next_action = self.best_action_from_state(self.state, epsilon=self.epsilon)
 
         #######################################################################
         # Execute action and get reward
@@ -82,6 +82,7 @@ class LearningAgent(Agent):
         print "     state = {}".format(self.state)
         print "     deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, next_action, reward)  # [debug]
         print "     total reward = {}".format(sum(self.rewards))
+
 def run():
     """Run the agent for a finite number of trials."""
 
