@@ -53,13 +53,29 @@ class LearningAgent(Agent):
             other_actions = filter(lambda x: x != best_action, possible_actions)
             next_action = random.choice(other_actions)
 
+        #######################################################################
         # Execute action and get reward
         reward = self.env.act(self, next_action)
 
-        # TODO: Learn policy based on state, action, reward
+        #######################################################################
+        # Learn policy based on state, action, reward
+        # Gather inputs
+        self.next_waypoint  = self.planner.next_waypoint()  # from route planner, also displayed by simulator
+        inputs              = self.env.sense(self)
+        deadline            = self.env.get_deadline(self)
+
+        next_state = (inputs["light"], inputs["oncoming"], deadline)
+        # The updated q value for our current state equals
+        #       the reward we just saw
+        #     + the q value of the best action to take from this state
+        #     * the learning rate
+        best_action = self.best_action_from_state(next_state)
+        self.q_values[(next_state, next_action)] = \
+            self.q_values.get((next_state, next_action), 0) + \
+            self.alpha * (reward + self.q_values.get((next_state, best_action), 0))
+
         print "LearningAgent.update(): state = {}".format(self.state)
         print "LearningAgent.update(): deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, next_action, reward)  # [debug]
-        import pdb; pdb.set_trace()
 
 def run():
     """Run the agent for a finite number of trials."""
@@ -76,7 +92,6 @@ def run():
 
     sim.run(n_trials=100)  # run for a specified number of trials
     # NOTE: To quit midway, press Esc or close pygame window, or hit Ctrl+C on the command-line
-
 
 if __name__ == '__main__':
     run()
