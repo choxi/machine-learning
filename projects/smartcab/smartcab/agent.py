@@ -13,11 +13,12 @@ class LearningAgent(Agent):
         self.color          = 'red'  # override color
         self.planner        = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
         self.q_values       = {}
-        self.epsilon        = 0.5
-        self.alpha          = 0.5
-        self.gamma          = 0.5
+        self.epsilon        = 0.2
+        self.alpha          = 0.8
+        self.gamma          = 0.1
         self.rewards        = []
         self.current_iteration = 0
+        self.successes      = 0
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
@@ -35,7 +36,7 @@ class LearningAgent(Agent):
                 best_action  = action
                 best_q_value = q_value
 
-        if random.random() < self.epsilon:
+        if random.random() < (1 - self.epsilon):
             next_action = best_action
         else:
             other_actions = filter(lambda x: x != best_action, possible_actions)
@@ -57,7 +58,7 @@ class LearningAgent(Agent):
 
         #######################################################################
         # Select action according to your policy
-        next_action = self.best_action_from_state(self.state, epsilon=self.epsilon)
+        next_action = self.best_action_from_state(self.state, epsilon=(self.epsilon ** t))
 
         #######################################################################
         # Execute action and get reward
@@ -75,12 +76,21 @@ class LearningAgent(Agent):
         best_action = self.best_action_from_state(next_state)
         self.q_values[(next_state, next_action)] = \
             self.q_values.get((next_state, next_action), 0) + \
-            self.alpha * (reward + (self.gamma ** t) * self.q_values.get((next_state, best_action), 0))
+            (self.alpha ** t) * (reward + (self.gamma ** t) * self.q_values.get((next_state, best_action), 0))
+
+        # Check to see if successful
+        location    = self.env.agent_states[self]["location"]
+        destination = self.env.agent_states[self]["destination"]
+
+        if location == destination:
+            self.successes += 1
 
         print "="*80
         print "Current Iteration: {}".format(self.current_iteration)
-        print "     state = {}".format(self.state)
-        print "     total reward = {}".format(sum(self.rewards))
+        print "     state                    = {}".format(self.state)
+        print "     total reward             = {}".format(sum(self.rewards))
+        print "     avg points per iteration = {}".format(sum(self.rewards) / float(self.current_iteration))
+        print "     successes                = {}".format(self.successes)
 
 def run():
     """Run the agent for a finite number of trials."""
@@ -92,7 +102,7 @@ def run():
     # NOTE: You can set enforce_deadline=False while debugging to allow longer trials
 
     # Now simulate it
-    sim = Simulator(e, update_delay=0, display=True)  # create simulator (uses pygame when display=True, if available)
+    sim = Simulator(e, update_delay=0, display=False)  # create simulator (uses pygame when display=True, if available)
     # NOTE: To speed up simulation, reduce update_delay and/or set display=False
 
     sim.run(n_trials=100)  # run for a specified number of trials
