@@ -17,9 +17,11 @@ class LearningAgent(Agent):
         self.alpha          = 0.5
         self.gamma          = 0.5
         self.rewards        = []
+        self.current_iteration = 0
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
+        self.current_iteration += 1
         # TODO: Prepare for a new trip; reset any variables here, if required
 
     def best_action_from_state(self, state, epsilon=1.0):
@@ -46,7 +48,7 @@ class LearningAgent(Agent):
         next_waypoint       = self.planner.next_waypoint()
         deadline            = self.env.get_deadline(self)
 
-        return ( inputs["light"], inputs["oncoming"], deadline )
+        return ( inputs["light"], inputs["oncoming"], next_waypoint )
 
     def update(self, t):
         # Gather inputs and set state
@@ -76,7 +78,7 @@ class LearningAgent(Agent):
             self.alpha * (reward + (self.gamma ** t) * self.q_values.get((next_state, best_action), 0))
 
         print "="*80
-        print "LearningAgent.update():"
+        print "Current Iteration: {}".format(self.current_iteration)
         print "     state = {}".format(self.state)
         print "     total reward = {}".format(sum(self.rewards))
 
