@@ -43,16 +43,15 @@ class LearningAgent(Agent):
 
     def current_state(self):
         inputs              = self.env.sense(self)
-        self.next_waypoint  = self.planner.next_waypoint()
+        next_waypoint       = self.planner.next_waypoint()
         deadline            = self.env.get_deadline(self)
 
         return ( inputs["light"], inputs["oncoming"], deadline )
 
     def update(self, t):
-        possible_actions = [None, "forward", "left", "right"]
-
         # Gather inputs and set state
-        self.state = self.current_state()
+        self.next_waypoint  = self.planner.next_waypoint()
+        self.state          = self.current_state()
 
         #######################################################################
         # Select action according to your policy
@@ -79,7 +78,6 @@ class LearningAgent(Agent):
         print "="*80
         print "LearningAgent.update():"
         print "     state = {}".format(self.state)
-        # print "     deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, next_action, reward)  # [debug]
         print "     total reward = {}".format(sum(self.rewards))
 
 def run():
