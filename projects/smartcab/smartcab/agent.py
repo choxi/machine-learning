@@ -58,25 +58,26 @@ class LearningAgent(Agent):
 
         #######################################################################
         # Select action according to your policy
-        next_action = self.best_action_from_state(self.state, epsilon=(self.epsilon ** t))
+        action = self.best_action_from_state(self.state, epsilon=(self.epsilon ** t))
 
         #######################################################################
         # Execute action and get reward
-        reward = self.env.act(self, next_action)
+        reward = self.env.act(self, action)
         self.rewards.append(reward)
 
         #######################################################################
         # Learn policy based on state, action, reward
-        next_state = self.current_state()
+        new_state = self.current_state()
 
         # The updated q value for our current state equals
         #       the reward we just saw
         #     + the q value of the best action to take from this state
         #     * the learning rate
-        best_action = self.best_action_from_state(next_state)
-        self.q_values[(next_state, next_action)] = \
-            self.q_values.get((next_state, next_action), 0) + \
-            (self.alpha ** t) * (reward + (self.gamma ** t) * self.q_values.get((next_state, best_action), 0))
+        # Q(s) = r(s) + gamma * sigma(Q(s', a'))
+        new_action = self.best_action_from_state(new_state)
+        self.q_values[(self.state, action)] = \
+            self.q_values.get((self.state, action), 0) + \
+            (self.alpha ** t) * (reward + (self.gamma ** t) * self.q_values.get((new_state, new_action), 0))
 
         # Check to see if successful
         location    = self.env.agent_states[self]["location"]
