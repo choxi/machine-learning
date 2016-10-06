@@ -13,7 +13,6 @@ class LearningAgent(Agent):
         self.color          = 'red'  # override color
         self.planner        = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
         self.q_values       = {}
-        self.epsilon        = 0.2
         self.alpha          = 0.1
         self.gamma          = 0.1
         self.rewards        = []
@@ -36,7 +35,7 @@ class LearningAgent(Agent):
                 best_action  = action
                 best_q_value = q_value
 
-        if random.random() < (1 - self.epsilon):
+        if random.random() < (1 - epsilon):
             next_action = best_action
         else:
             other_actions = filter(lambda x: x != best_action, possible_actions)
@@ -58,7 +57,7 @@ class LearningAgent(Agent):
 
         #######################################################################
         # Select action according to your policy
-        action = self.best_action_from_state(self.state, epsilon=(self.epsilon ** t))
+        action = self.best_action_from_state(self.state, epsilon=(1.0 / float(t + 1)))
 
         #######################################################################
         # Execute action and get reward
