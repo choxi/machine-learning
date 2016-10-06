@@ -14,7 +14,7 @@ class LearningAgent(Agent):
         self.planner        = RoutePlanner(self.env, self)  # simple route planner to get next_waypoint
         self.q_values       = {}
         self.epsilon        = 0.2
-        self.alpha          = 0.8
+        self.alpha          = 0.1
         self.gamma          = 0.1
         self.rewards        = []
         self.current_iteration = 0
