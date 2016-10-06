@@ -22,7 +22,6 @@ class LearningAgent(Agent):
     def reset(self, destination=None):
         self.planner.route_to(destination)
         self.current_iteration += 1
-        # TODO: Prepare for a new trip; reset any variables here, if required
 
     def best_action_from_state(self, state, epsilon=1.0):
         possible_actions    = [ None, "forward", "left", "right" ]
@@ -68,17 +67,15 @@ class LearningAgent(Agent):
         # Learn policy based on state, action, reward
         new_state = self.current_state()
 
-        # The updated q value for our current state equals
-        #       the reward we just saw
-        #     + the q value of the best action to take from this state
-        #     * the learning rate
-        # Q(s) = r(s) + gamma * sigma(Q(s', a'))
+        #######################################################################
+        # Update the Q value of our state
         new_action = self.best_action_from_state(new_state)
         self.q_values[(self.state, action)] = \
             self.q_values.get((self.state, action), 0) + \
             (self.alpha ** t) * (reward + (self.gamma ** t) * self.q_values.get((new_state, new_action), 0))
 
-        # Check to see if successful
+        #######################################################################
+        # Track the number of successes
         location    = self.env.agent_states[self]["location"]
         destination = self.env.agent_states[self]["destination"]
 
