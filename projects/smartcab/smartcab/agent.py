@@ -41,15 +41,18 @@ class LearningAgent(Agent):
 
         return next_action
 
+    def current_state(self):
+        inputs              = self.env.sense(self)
+        self.next_waypoint  = self.planner.next_waypoint()
+        deadline            = self.env.get_deadline(self)
+
+        return ( inputs["light"], inputs["oncoming"], deadline )
+
     def update(self, t):
         possible_actions = [None, "forward", "left", "right"]
 
-        # Gather inputs
-        self.next_waypoint  = self.planner.next_waypoint()  # from route planner, also displayed by simulator
-        inputs              = self.env.sense(self)
-        deadline            = self.env.get_deadline(self)
-
-        self.state = (inputs["light"], inputs["oncoming"], deadline)
+        # Gather inputs and set state
+        self.state = self.current_state()
 
         #######################################################################
         # Select action according to your policy
@@ -62,12 +65,8 @@ class LearningAgent(Agent):
 
         #######################################################################
         # Learn policy based on state, action, reward
-        # Gather inputs
-        self.next_waypoint  = self.planner.next_waypoint()  # from route planner, also displayed by simulator
-        inputs              = self.env.sense(self)
-        deadline            = self.env.get_deadline(self)
+        next_state = self.current_state()
 
-        next_state = (inputs["light"], inputs["oncoming"], deadline)
         # The updated q value for our current state equals
         #       the reward we just saw
         #     + the q value of the best action to take from this state
@@ -80,7 +79,7 @@ class LearningAgent(Agent):
         print "="*80
         print "LearningAgent.update():"
         print "     state = {}".format(self.state)
-        print "     deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, next_action, reward)  # [debug]
+        # print "     deadline = {}, inputs = {}, action = {}, reward = {}".format(deadline, inputs, next_action, reward)  # [debug]
         print "     total reward = {}".format(sum(self.rewards))
 
 def run():
